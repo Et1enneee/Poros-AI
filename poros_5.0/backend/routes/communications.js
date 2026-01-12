@@ -1,13 +1,10 @@
-
-// ==== 新增：文件开头必须加这几行 ====
+// communications.js - 修复版，使用SQLite数据库
 import express from 'express';
-import DatabaseService from '../services/database.js'; // 导入数据库服务
+import DatabaseService from '../services/database.js'; // 导入SQLite数据库服务
 const dbService = new DatabaseService(); // 实例化（全局可用）
-// ==== 新增结束 ====
 
-const router = express.Router(); // 保留原有代码
+const router = express.Router();
 import CacheService from '../services/cache.js';
-
 
 const cacheService = new CacheService();
 let cacheReady = false;
@@ -22,22 +19,21 @@ let cacheReady = false;
   }
 })();
 
-
-
 // Communication Plans Routes
 router.get('/plans', async (req, res) => {
   try {
-    // 修复1：LIMIT必须传「偏移量+数量」，且参数是数组
     const pageSize = parseInt(req.query.pageSize || 10); // 每页数量
     const pageNum = parseInt(req.query.pageNum || 1); // 页码
+    const customerId = req.query.customer_id; // 可选参数
+    
     const offset = (pageNum - 1) * pageSize; // 偏移量
-
-    // 修复2：SQL的LIMIT用 ?, ?，传参是[offset, pageSize]
-    const plans = await dbService.run(`
-      SELECT * FROM communication_plans 
-      ORDER BY created_at DESC 
-      LIMIT ?, ?
-    `, [offset, pageSize]); // ✅ 核心：参数必须是数组！
+    
+    let plans;
+    if (customerId) {
+      plans = await dbService.getCommunicationPlans(customerId, pageSize);
+    } else {
+      plans = await dbService.getCommunicationPlans(null, pageSize);
+    }
 
     res.status(200).json({
       success: true,
@@ -93,15 +89,8 @@ router.post('/plans', async (req, res) => {
       end_date: reqBody.end_date ? reqBody.end_date.trim() : null,
       status: reqBody.status ? reqBody.status.trim() : 'active'
     };
-    // 注释掉所有校验代码（临时关掉，先让创建成功）
-    // if (!planData.customer_id) { ... }
-    // if (!planData.plan_name) { ... }
-    // if (!planData.communication_type) { ... }
-    // if (!['online', 'in_person'].includes(planData.communication_type)) { ... }
-    // if (!planData.start_date) { ... }
-    // if (!allowedFrequencies.includes(planData.frequency)) { ... }
 
-    // 3. 调用数据库服务创建计划
+    // 调用数据库服务创建计划
     const plan = await dbService.createCommunicationPlan(planData);
     res.status(201).json({
       success: true,
@@ -124,15 +113,18 @@ router.put('/plans/:id', async (req, res) => {
     const { id } = req.params;
     const planData = {
       plan_name: req.body.plan_name,
-      // plan_type: req.body.plan_type, // 移除不存在字段
       frequency: req.body.frequency,
-      next_contact_date: parseValidDate(req.body.next_contact_date),
-      target_date: parseValidDate(req.body.target_date),
       status: req.body.status,
-      agenda: req.body.agenda || null,
-      objectives: req.body.objectives || null,
-      notes: req.body.notes || null
+      end_date: req.body.end_date
     };
+    
+    // 过滤空值
+    Object.keys(planData).forEach(key => {
+      if (planData[key] === undefined || planData[key] === '') {
+        delete planData[key];
+      }
+    });
+    
     const result = await dbService.updateCommunicationPlan(id, planData);
     if (result.changes === 0) {
       return res.status(404).json({
@@ -204,28 +196,27 @@ router.get('/records/:id', async (req, res) => {
 
 router.post('/records', async (req, res) => {
   try {
-    // 严格的数据类型转换，确保所有值都是SQLite可接受的类型 (5.0.1版本修复)
+    // 严格的数据类型转换，确保所有值都是SQLite可接受的类型
     const recordData = {
       customer_id: String(req.body.customer_id),
-      plan_id: req.body.plan_id !== null && req.body.plan_id !== undefined ? Number(req.body.plan_id) : null,
+      plan_id: req.body.plan_id !== null && req.body.plan_id !== undefined && req.body.plan_id !== '' ? Number(req.body.plan_id) : null,
       manager_id: String(req.body.manager_id || 'current_user'),
       contact_date: String(req.body.contact_date || new Date().toISOString()),
       contact_type: String(req.body.contact_type),
-      duration_minutes: req.body.duration_minutes !== null && req.body.duration_minutes !== undefined ? Number(req.body.duration_minutes) : null,
+      duration_minutes: req.body.duration_minutes !== null && req.body.duration_minutes !== undefined && req.body.duration_minutes !== '' ? Number(req.body.duration_minutes) : null,
       location: req.body.location !== null && req.body.location !== undefined ? String(req.body.location) : null,
       summary: String(req.body.summary),
       key_discussions: req.body.key_discussions !== null && req.body.key_discussions !== undefined ? String(req.body.key_discussions) : null,
       decisions_made: req.body.decisions_made !== null && req.body.decisions_made !== undefined ? String(req.body.decisions_made) : null,
       commitments: req.body.commitments !== null && req.body.commitments !== undefined ? String(req.body.commitments) : null,
       action_items: req.body.action_items !== null && req.body.action_items !== undefined ? String(req.body.action_items) : null,
-      satisfaction_rating: req.body.satisfaction_rating !== null && req.body.satisfaction_rating !== undefined ? Number(req.body.satisfaction_rating) : null,
+      satisfaction_rating: req.body.satisfaction_rating !== null && req.body.satisfaction_rating !== undefined && req.body.satisfaction_rating !== '' ? Number(req.body.satisfaction_rating) : null,
       follow_up_required: Boolean(req.body.follow_up_required),
       follow_up_date: req.body.follow_up_date !== null && req.body.follow_up_date !== undefined ? String(req.body.follow_up_date) : null,
       // 字段映射到数据库表中的字段
       outcome: req.body.outcome || req.body.decisions_made, // 映射到数据库的outcome字段
       next_action: req.body.next_action || req.body.action_items, // 映射到数据库的next_action字段  
       notes: req.body.notes || req.body.summary // 映射到数据库的notes字段
-      // 注意：documents, next_contact_scheduled, next_contact_date, status等字段被映射到数据库支持的字段
     };
 
     // Validate required fields
@@ -240,21 +231,27 @@ router.post('/records', async (req, res) => {
     console.log('Creating communication record with data:', recordData);
     console.log('Data types:', Object.fromEntries(Object.entries(recordData).map(([k, v]) => [k, typeof v])));
     
-    const result = dbService.createCommunicationRecord(recordData);
+    const result = await dbService.createCommunicationRecord(recordData);
     
-    // Update customer's last_contact date
-    dbService.run(`
-      UPDATE customers SET last_contact = ?, updated_at = CURRENT_TIMESTAMP 
-      WHERE customer_id = ?
-    `, [recordData.contact_date, recordData.customer_id]);
+    // Update customer's last_contact date (如果有customers表的话)
+    try {
+      await dbService.run(`
+        UPDATE customers SET last_contact = ?, updated_at = CURRENT_TIMESTAMP 
+        WHERE customer_id = ?
+      `, [recordData.contact_date, recordData.customer_id]);
+    } catch (updateError) {
+      console.warn('Warning: Could not update customer last_contact:', updateError.message);
+    }
     
     // Clear related cache
-    cacheService.delete('records:*');
-    cacheService.delete('dashboard:*');
+    if (cacheReady) {
+      cacheService.delete('records:*');
+      cacheService.delete('dashboard:*');
+    }
     
     res.status(201).json({
       success: true,
-      data: { id: result.lastInsertRowid, ...recordData },
+      data: { id: result.lastID, ...recordData },
       message: 'Communication record created successfully'
     });
   } catch (error) {
@@ -267,12 +264,43 @@ router.post('/records', async (req, res) => {
   }
 });
 
+router.delete('/records/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await dbService.run('DELETE FROM communication_records WHERE record_id = ?', [id]);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Communication record not found'
+      });
+    }
+    
+    // Clear related cache
+    if (cacheReady) {
+      cacheService.delete('records:*');
+      cacheService.delete('dashboard:*');
+    }
+    
+    res.json({
+      success: true,
+      message: 'Communication record deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting communication record:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete communication record',
+      message: error.message
+    });
+  }
+});
 
 // Reminders Routes
 router.get('/reminders', async (req, res) => {
   try {
     const { customer_id, status = 'pending' } = req.query;
-    const reminders = dbService.getCommunicationReminders(customer_id, status);
+    const reminders = await dbService.getCommunicationReminders(customer_id, status);
     
     res.json({
       success: true,
@@ -298,7 +326,7 @@ router.post('/reminders', async (req, res) => {
       reminder_type: req.body.reminder_type,
       title: req.body.title,
       description: req.body.description || null,
-      due_date: (req.body.due_date instanceof Date) ? req.body.due_date.toISOString() : (req.body.due_date || null),
+      due_date: req.body.due_date || null,
       priority: req.body.priority || 'medium',
       status: req.body.status || 'pending',
       assigned_to: req.body.assigned_to || null
@@ -312,15 +340,17 @@ router.post('/reminders', async (req, res) => {
       });
     }
 
-    const result = dbService.createCommunicationReminder(reminderData);
+    const result = await dbService.createCommunicationReminder(reminderData);
     
     // Clear related cache
-    cacheService.delete('reminders:*');
-    cacheService.delete('dashboard:*');
+    if (cacheReady) {
+      cacheService.delete('reminders:*');
+      cacheService.delete('dashboard:*');
+    }
     
     res.status(201).json({
       success: true,
-      data: { id: result.lastInsertRowid, ...reminderData },
+      data: { id: result.lastID, ...reminderData },
       message: 'Reminder created successfully'
     });
   } catch (error) {
@@ -339,13 +369,20 @@ router.put('/reminders/:id', async (req, res) => {
     const reminderData = {
       title: req.body.title,
       description: req.body.description || null,
-      due_date: (req.body.due_date instanceof Date) ? req.body.due_date.toISOString() : req.body.due_date,
+      due_date: req.body.due_date,
       priority: req.body.priority,
       status: req.body.status,
       assigned_to: req.body.assigned_to || null
     };
+    
+    // 过滤空值
+    Object.keys(reminderData).forEach(key => {
+      if (reminderData[key] === undefined) {
+        delete reminderData[key];
+      }
+    });
 
-    const result = dbService.updateCommunicationReminder(id, reminderData);
+    const result = await dbService.updateCommunicationReminder(id, reminderData);
     
     if (result.changes === 0) {
       return res.status(404).json({
@@ -355,8 +392,10 @@ router.put('/reminders/:id', async (req, res) => {
     }
     
     // Clear related cache
-    cacheService.delete('reminders:*');
-    cacheService.delete('dashboard:*');
+    if (cacheReady) {
+      cacheService.delete('reminders:*');
+      cacheService.delete('dashboard:*');
+    }
     
     res.json({
       success: true,
@@ -372,155 +411,17 @@ router.put('/reminders/:id', async (req, res) => {
   }
 });
 
-// Templates Routes
-router.get('/templates', async (req, res) => {
-  try {
-    const { category } = req.query;
-    const templates = dbService.getCommunicationTemplates(category);
-    
-    res.json({
-      success: true,
-      data: templates,
-      total: templates.length
-    });
-  } catch (error) {
-    console.error('Error fetching templates:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch templates',
-      message: error.message
-    });
-  }
-});
-
-router.post('/templates', async (req, res) => {
-  try {
-    const templateData = {
-      name: req.body.name,
-      category: req.body.category,
-      subject: req.body.subject,
-      content: req.body.content,
-      variables: JSON.stringify(req.body.variables || []),
-      is_active: req.body.is_active !== false,
-      created_by: req.body.created_by || 'current_user'
-    };
-
-    // Validate required fields
-    if (!templateData.name || !templateData.category || !templateData.content) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: name, category, content'
-      });
-    }
-
-    const result = dbService.createCommunicationTemplate(templateData);
-    
-    res.status(201).json({
-      success: true,
-      data: { id: result.lastInsertRowid, ...templateData },
-      message: 'Template created successfully'
-    });
-  } catch (error) {
-    console.error('Error creating template:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create template',
-      message: error.message
-    });
-  }
-});
-
-// Team Management Routes
-router.get('/team/:customer_id', async (req, res) => {
-  try {
-    const { customer_id } = req.params;
-    const team = dbService.getCommunicationTeam(customer_id);
-    
-    res.json({
-      success: true,
-      data: team,
-      total: team.length
-    });
-  } catch (error) {
-    console.error('Error fetching communication team:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch communication team',
-      message: error.message
-    });
-  }
-});
-
-router.post('/team', async (req, res) => {
-  try {
-    const teamData = {
-      customer_id: req.body.customer_id,
-      user_id: req.body.user_id,
-      role: req.body.role,
-      permissions: JSON.stringify(req.body.permissions || []),
-      added_by: req.body.added_by || 'current_user'
-    };
-
-    // Validate required fields
-    if (!teamData.customer_id || !teamData.user_id || !teamData.role) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: customer_id, user_id, role'
-      });
-    }
-
-    const result = dbService.addCommunicationTeamMember(teamData);
-    
-    res.status(201).json({
-      success: true,
-      data: { id: result.lastInsertRowid, ...teamData },
-      message: 'Team member added successfully'
-    });
-  } catch (error) {
-    console.error('Error adding team member:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to add team member',
-      message: error.message
-    });
-  }
-});
-
-router.delete('/team/:customer_id/:user_id', async (req, res) => {
-  try {
-    const { customer_id, user_id } = req.params;
-    const result = dbService.removeCommunicationTeamMember(customer_id, user_id);
-    
-    if (result.changes === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Team member not found'
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Team member removed successfully'
-    });
-  } catch (error) {
-    console.error('Error removing team member:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to remove team member',
-      message: error.message
-    });
-  }
-});
-
 // Analytics and Dashboard Routes
 router.get('/dashboard', async (req, res) => {
   try {
     const cacheKey = 'dashboard:communications';
-    let dashboard = cacheService.get(cacheKey);
+    let dashboard = cacheReady ? cacheService.get(cacheKey) : null;
     
     if (!dashboard) {
-      dashboard = dbService.getCommunicationDashboard(); // ✅ 用全局 dbService
-      cacheService.set(cacheKey, dashboard, 60); // 1 minute cache
+      dashboard = await dbService.getCommunicationDashboard();
+      if (cacheReady) {
+        cacheService.set(cacheKey, dashboard, 60); // 1 minute cache
+      }
     }
     
     res.json({
@@ -544,8 +445,8 @@ router.get('/timeline/:customer_id', async (req, res) => {
     const { limit = 20 } = req.query;
     
     // Get communication records and plans for timeline
-    const records = dbService.getCommunicationRecords(customer_id, parseInt(limit));
-    const plans = dbService.getCommunicationPlans(customer_id);
+    const records = await dbService.getCommunicationRecords(customer_id, parseInt(limit));
+    const plans = await dbService.getCommunicationPlans(customer_id, parseInt(limit));
     
     // Combine and sort by date
     const timeline = [
@@ -558,10 +459,10 @@ router.get('/timeline/:customer_id', async (req, res) => {
       })),
       ...plans.map(plan => ({
         type: 'plan',
-        date: plan.next_contact_date,
+        date: plan.start_date,
         data: plan,
         title: `Plan: ${plan.plan_name}`,
-        description: `Next Contact: ${plan.next_contact_date}`
+        description: `Start Date: ${plan.start_date}`
       }))
     ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, parseInt(limit));
     
