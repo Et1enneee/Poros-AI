@@ -1,0 +1,22 @@
+# 通用忽略（所有项目都能用）
+.DS_Store       # Mac 系统隐藏文件
+.idea/          # IntelliJ IDEA 配置文件
+.vscode/        # VS Code 配置文件
+*.log           # 所有日志文件
+*.tmp           # 所有临时文件
+*.zip           # 所有压缩包（如果项目需要上传zip，删掉这行）
+*.rar           # 所有rar包
+
+# Python 项目专属（不用Python就删掉下面3行）
+__pycache__/
+venv/
+*.pyc
+
+# Node.js 项目专属（不用Node就删掉下面3行）
+node_modules/
+npm-debug.log
+dist/
+
+# Java 项目专属（不用Java就删掉下面2行）
+target/
+*.class

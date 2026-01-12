@@ -1,0 +1,308 @@
+
+> poros-backend@4.1.0 start
+> node server.js
+
+✅ CacheService initialized
+✅ Spark AI API configured (v4.10)
+🔑 APPID: bffdd85c...
+✅ Table customers created or verified
+✅ Table communication_plans created or verified
+✅ Table communication_records created or verified
+✅ Table investment_plans created or verified
+✅ Table market_data created or verified
+✅ Database connection established (v4.10)
+✅ Database initialized successfully
+🔧 Running database fixes...
+🔧 修复并初始化数据库...
+✅ Table customers created or verified
+✅ Table communication_plans created or verified
+✅ Table communication_records created or verified
+✅ Table investment_plans created or verified
+✅ Table market_data created or verified
+✅ Database connection established (v4.10)
+🧹 清空现有数据...
+✅ 数据库表结构已修复
+📝 添加通讯模板...
+✅ 添加了 3 个通讯模板
+🔧 检查communication_plans表结构...
+当前表结构: [
+  'id',                'customer_id',
+  'plan_name',         'description',
+  'frequency',         'next_contact_date',
+  'status',            'priority',
+  'notes',             'created_at',
+  'updated_at',        'manager_id',
+  'plan_type',         'contact_method',
+  'last_contact_date', 'next_follow_up_date',
+  'assigned_to',       'is_active',
+  'completion_status', 'target_date',
+  'agenda',            'objectives',
+  'title',             'channel',
+  'target_frequency',  'priority_level'
+]
+✅ communication_plans表结构检查完成
+🔧 检查communication_records表结构...
+当前communication_records表结构: [
+  'id',                 'customer_id',
+  'plan_id',            'manager_id',
+  'contact_date',       'contact_type',
+  'duration_minutes',   'location',
+  'summary',            'key_discussions',
+  'decisions_made',     'commitments',
+  'action_items',       'satisfaction_rating',
+  'follow_up_required', 'follow_up_date',
+  'documents',          'next_contact_scheduled',
+  'next_contact_date',  'status',
+  'created_at',         'updated_at',
+  'notes',              'outcome',
+  'next_steps',         'meeting_type',
+  'participants',       'attachments',
+  'is_ai_generated',    'ai_confidence_score',
+  'tags',               'priority',
+  'completion_status',  'reminder_sent',
+  'last_modified_by',   'external_id',
+  'metadata',           'next_action'
+]
+✅ communication_records表结构检查完成
+👥 检查客户数据...
+✅ 客户数据已存在
+📋 添加通讯计划...
+✅ 添加了 3 个通讯计划
+🔍 获取通讯计划ID...
+通讯计划ID映射:
+  - CUST_001: 季度投资组合审查 -> ID: 24
+  - CUST_002: 月度市场更新 -> ID: 25
+  - CUST_003: 年度财富规划 -> ID: 26
+📞 添加通讯记录...
+✅ 添加了 2 条通讯记录
+⏰ 添加提醒数据...
+✅ 添加了 3 个提醒
+👥 添加团队数据...
+✅ 添加了 3 个团队成员
+
+🎉 数据库修复和种子数据添加完成！
+📊 数据统计:
+  - 客户: 7
+  - 通讯计划: 3
+  - 通讯记录: 2
+  - 提醒: 3
+  - 模板: 3
+✅ Database connection closed
+✅ Database fixes completed
+✅ 讯飞星火大模型服务已就绪
+✅ 讯飞星火 API 配置完成
+📊 Starting market data updates...
+✅ Market data service started
+🚀 Poros Backend API running on port 3001
+🏢 Company: Poros Technologies
+🌍 Environment: development
+📊 Health check: http://localhost:3001/api/health
+✅ Market data updated: 8 symbols
+[2025-12-30T14:35:01.051Z] POST /api/communications/records - ::ffff:127.0.0.1
+✅ Table customers created or verified
+✅ Table communication_plans created or verified
+✅ Table communication_records created or verified
+✅ Table investment_plans created or verified
+✅ Table market_data created or verified
+✅ Database connection established (v4.10)
+Creating communication record with data: {
+  customer_id: 'CUST_001',
+  plan_id: 18,
+  manager_id: 'current_user',
+  contact_date: '2025-12-30T14:35:01.100Z',
+  contact_type: '视频会议',
+  duration_minutes: 60,
+  location: null,
+  summary: '测试添加的沟通记录',
+  key_discussions: '讨论投资策略',
+  decisions_made: null,
+  commitments: null,
+  action_items: null,
+  satisfaction_rating: 5,
+  follow_up_required: false,
+  follow_up_date: null,
+  documents: '[]',
+  next_contact_scheduled: false,
+  next_contact_date: null,
+  status: 'completed'
+}
+Data types: {
+  customer_id: 'string',
+  plan_id: 'number',
+  manager_id: 'string',
+  contact_date: 'string',
+  contact_type: 'string',
+  duration_minutes: 'number',
+  location: 'object',
+  summary: 'string',
+  key_discussions: 'string',
+  decisions_made: 'object',
+  commitments: 'object',
+  action_items: 'object',
+  satisfaction_rating: 'number',
+  follow_up_required: 'boolean',
+  follow_up_date: 'object',
+  documents: 'string',
+  next_contact_scheduled: 'boolean',
+  next_contact_date: 'object',
+  status: 'string'
+}
+[2025-12-30T14:35:01.199Z] POST /api/communications/records - [32m201[0m - 148ms
+[2025-12-30T14:35:05.553Z] POST /api/advice/spark-advice - ::ffff:127.0.0.1
+📋 收到AI建议生成请求: { customer_id: 'CUST_001', user_selections: undefined }
+✅ 找到客户: 张三 (ID: CUST_001)
+📊 客户详细信息已准备完成，包含：
+   - 基本信息: 张三, 35岁, Employee
+   - 行业背景: Professional Services (0年经验)
+   - 收入情况: 年收入HKD 0
+   - 投资组合: 0 个投资组合，0 个投资计划
+🤖 Using Spark AI to generate investment advice (v4.10)...
+🚀 开始调用讯飞星火大模型 API (v4.4)...
+📤 发送请求到: https://spark-api-open.xf-yun.com/v2/chat/completions
+📥 响应状态: 401
+❌ API请求失败: {"message":"HMAC signature cannot be verified:enforced header 'date' not used for signature creation"}
+🔄 尝试使用简化认证...
+⚠️ 所有认证方式都失败，使用模拟数据
+[2025-12-30T14:35:05.841Z] POST /api/advice/spark-advice - [32m200[0m - 288ms
+[2025-12-30T14:36:46.090Z] GET /api/communications/dashboard - ::1
+[2025-12-30T14:36:46.135Z] GET /api/communications/dashboard - [32m200[0m - 45ms
+[2025-12-30T14:36:46.140Z] GET /api/advice/customers - ::1
+[2025-12-30T14:36:46.147Z] GET /api/advice/customers - [32m200[0m - 7ms
+[2025-12-30T14:36:46.149Z] POST /api/advice/spark-advice - ::1
+📋 收到AI建议生成请求: {
+  customer_id: 'CUST_007',
+  user_selections: { investment_goal: 'Asset Growth', investment_period: '3 years' }
+}
+✅ 找到客户: 吴九 (ID: CUST_007)
+📊 客户详细信息已准备完成，包含：
+   - 基本信息: 吴九, 39岁, Employee
+   - 行业背景: Professional Services (0年经验)
+   - 收入情况: 年收入HKD 0
+   - 投资组合: 0 个投资组合，0 个投资计划
+🤖 Using Spark AI to generate investment advice (v4.10)...
+🚀 开始调用讯飞星火大模型 API (v4.4)...
+📤 发送请求到: https://spark-api-open.xf-yun.com/v2/chat/completions
+📥 响应状态: 401
+❌ API请求失败: {"message":"HMAC signature cannot be verified:enforced header 'date' not used for signature creation"}
+🔄 尝试使用简化认证...
+⚠️ 所有认证方式都失败，使用模拟数据
+[2025-12-30T14:36:46.446Z] POST /api/advice/spark-advice - [32m200[0m - 297ms
+[2025-12-30T14:37:18.942Z] GET /api/health - ::ffff:127.0.0.1
+[2025-12-30T14:37:18.943Z] GET /api/health - [32m200[0m - 1ms
+[2025-12-30T14:37:18.961Z] GET /api/communications/dashboard - ::ffff:127.0.0.1
+[2025-12-30T14:37:18.962Z] GET /api/communications/dashboard - [32m200[0m - 1ms
+Error: SyntaxError: Expected property name or '}' in JSON at position 1
+    at JSON.parse (<anonymous>)
+    at parse (/workspace/poros_4.10/backend/node_modules/body-parser/lib/types/json.js:92:19)
+    at /workspace/poros_4.10/backend/node_modules/body-parser/lib/read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:238:16)
+    at done (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:227:7)
+    at IncomingMessage.onEnd (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  expose: true,
+  statusCode: 400,
+  status: 400,
+  body: '{\\"customer_id\\": \\"CUST_001\\", \\"query\\": \\"投资建议\\"}',
+  type: 'entity.parse.failed'
+}
+Error: SyntaxError: Expected property name or '}' in JSON at position 1
+    at JSON.parse (<anonymous>)
+    at parse (/workspace/poros_4.10/backend/node_modules/body-parser/lib/types/json.js:92:19)
+    at /workspace/poros_4.10/backend/node_modules/body-parser/lib/read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:238:16)
+    at done (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:227:7)
+    at IncomingMessage.onEnd (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  expose: true,
+  statusCode: 400,
+  status: 400,
+  body: '{\\"customer_id\\": \\"CUST_001\\", \\"plan_id\\": 18, \\"contact_type\\": \\"测试\\", \\"summary\\": \\"测试记录\\", \\"satisfaction_rating\\": 5}',
+  type: 'entity.parse.failed'
+}
+[2025-12-30T14:37:19.017Z] GET /api/communications/dashboard - ::ffff:127.0.0.1
+[2025-12-30T14:37:19.017Z] GET /api/communications/dashboard - [32m200[0m - 0ms
+[2025-12-30T14:37:19.061Z] GET /api/communications/dashboard - ::ffff:127.0.0.1
+[2025-12-30T14:37:19.062Z] GET /api/communications/dashboard - [32m200[0m - 1ms
+Error: SyntaxError: Expected property name or '}' in JSON at position 1
+    at JSON.parse (<anonymous>)
+    at parse (/workspace/poros_4.10/backend/node_modules/body-parser/lib/types/json.js:92:19)
+    at /workspace/poros_4.10/backend/node_modules/body-parser/lib/read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:238:16)
+    at done (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:227:7)
+    at IncomingMessage.onEnd (/workspace/poros_4.10/backend/node_modules/raw-body/index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  expose: true,
+  statusCode: 400,
+  status: 400,
+  body: '{\\"customer_id\\": \\"CUST_001\\", \\"query\\": \\"投资建议\\"}',
+  type: 'entity.parse.failed'
+}
+[2025-12-30T14:37:26.727Z] POST /api/advice/spark-advice - ::ffff:127.0.0.1
+📋 收到AI建议生成请求: { customer_id: 'CUST_001', user_selections: undefined }
+✅ 找到客户: 张三 (ID: CUST_001)
+📊 客户详细信息已准备完成，包含：
+   - 基本信息: 张三, 35岁, Employee
+   - 行业背景: Professional Services (0年经验)
+   - 收入情况: 年收入HKD 0
+   - 投资组合: 0 个投资组合，0 个投资计划
+🤖 Using Spark AI to generate investment advice (v4.10)...
+🚀 开始调用讯飞星火大模型 API (v4.4)...
+📤 发送请求到: https://spark-api-open.xf-yun.com/v2/chat/completions
+📥 响应状态: 401
+❌ API请求失败: {"message":"HMAC signature cannot be verified:enforced header 'date' not used for signature creation"}
+🔄 尝试使用简化认证...
+⚠️ 所有认证方式都失败，使用模拟数据
+[2025-12-30T14:37:26.962Z] POST /api/advice/spark-advice - [32m200[0m - 235ms
+[2025-12-30T14:37:32.863Z] POST /api/communications/records - ::ffff:127.0.0.1
+Creating communication record with data: {
+  customer_id: 'CUST_001',
+  plan_id: 18,
+  manager_id: 'current_user',
+  contact_date: '2025-12-30T14:37:32.863Z',
+  contact_type: '测试',
+  duration_minutes: null,
+  location: null,
+  summary: '最终测试记录',
+  key_discussions: null,
+  decisions_made: null,
+  commitments: null,
+  action_items: null,
+  satisfaction_rating: 5,
+  follow_up_required: false,
+  follow_up_date: null,
+  documents: '[]',
+  next_contact_scheduled: false,
+  next_contact_date: null,
+  status: 'completed'
+}
+Data types: {
+  customer_id: 'string',
+  plan_id: 'number',
+  manager_id: 'string',
+  contact_date: 'string',
+  contact_type: 'string',
+  duration_minutes: 'object',
+  location: 'object',
+  summary: 'string',
+  key_discussions: 'object',
+  decisions_made: 'object',
+  commitments: 'object',
+  action_items: 'object',
+  satisfaction_rating: 'number',
+  follow_up_required: 'boolean',
+  follow_up_date: 'object',
+  documents: 'string',
+  next_contact_scheduled: 'boolean',
+  next_contact_date: 'object',
+  status: 'string'
+}
+[2025-12-30T14:37:32.934Z] POST /api/communications/records - [32m201[0m - 71ms
